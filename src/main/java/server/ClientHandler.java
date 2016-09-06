@@ -3,6 +3,7 @@ package server;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +21,6 @@ public class ClientHandler extends Thread {
     private Pattern msgPattern;
     private Pattern loginPattern;
 
-    
     private Pattern logoutPattern;
 
     private ConnectedUser connectedUser;
@@ -36,7 +36,7 @@ public class ClientHandler extends Thread {
         try {
             input = new Scanner(socket.getInputStream());
             writer = new PrintWriter(socket.getOutputStream(), true);
-            
+
         } catch (IOException e) {
 
         }
@@ -82,8 +82,8 @@ public class ClientHandler extends Thread {
     public void run() {
 
         try {
-            
-            send("Welcome to the server " + this.getName());
+
+            writer.println("Welcome to the server " + connectedUser.getUserName());
 
             while (true) {
                 ChatMessage msg = this.readMessage();
@@ -98,19 +98,32 @@ public class ClientHandler extends Thread {
                 switch (msg.getMessageType()) {
 
                     case LOGIN:
-                        
+
                         if (this.connectedUser == null) {
                             this.connectedUser = new ConnectedUser(msg.getContent());
+                            server.userNames.add(connectedUser);
+                        }
+                        continue;
+
+                    case MESSAGE:
+                        
+                        for(ClientHandler client : server.clients){
+                            if(Arrays.asList(msg.getReceivers()).contains(connectedUser)){
+                                send(msg.getContent(), connectedUser.getUserName());
+                            }
+                        }
+                        
+                    case MESSAGEALL:
+                        
+                        for (ClientHandler client : server.clients) {
+                            client.msgAll(msg.getContent());
                         }
                         continue;
                         
-                    case MESSAGE:
-                        
-
                 }
 
             }
-/*
+            /*
             System.out.println(String.format("Received the message: %1$S ", message));
             while (!message.equals("STOP")) {
                 send(message);
@@ -125,24 +138,30 @@ public class ClientHandler extends Thread {
 
             server.removeHandler(this);
             System.out.println("Closed a Connection");
-*/
+             */
         } catch (Exception ex) {
             System.out.println("something went wrong while closing thread:" + this.getName());
             Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-
     }
 
-    public void send(String message) {
+    public void send(String message, String sender) {
         String preMsg = "MSGRES:";
-        String msgSender = this.getName() + ":";
+        String msgSender = sender + ":";
 
         writer.println(preMsg + msgSender + message);
     }
-    
+
     public ConnectedUser getConnectedUser() {
         return connectedUser;
+    }
+
+    private void msgAll(String content) {
+        String preMsg = "MSGRES:";
+        String msgSender = connectedUser.getUserName() + ":";
+
+        writer.println(preMsg + msgSender + content);
     }
 
 }

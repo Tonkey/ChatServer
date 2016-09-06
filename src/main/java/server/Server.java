@@ -20,6 +20,7 @@ public class Server {
     private static ServerSocket serverSocket;
     
     List<ClientHandler> clients = new ArrayList();
+    List<ConnectedUser> userNames = new ArrayList();
     
     public static void stopServer() {
         keepRunning = false;
@@ -27,7 +28,7 @@ public class Server {
 
     public void send(String msg){
         clients.stream().forEach((client) -> {
-            client.send(msg);
+            client.send(msg, "");
         });
     }
     
