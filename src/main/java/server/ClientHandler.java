@@ -99,7 +99,9 @@ public class ClientHandler extends Thread {
 
                     case LOGIN:
                         
-                        this.connectedUser = new ConnectedUser(msg.getContent());
+                        if (this.connectedUser == null) {
+                            this.connectedUser = new ConnectedUser(msg.getContent());
+                        }
                         continue;
                         
                     case MESSAGE:
