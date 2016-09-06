@@ -1,0 +1,8 @@
+Sep 06, 2016 1:46:10 PM server.Server runServer
+INFO: Starting the Server
+Sep 06, 2016 1:46:10 PM server.Server runServer
+INFO: Server started. Listening on: 7777, bound to: localhost
+Sep 06, 2016 1:46:20 PM server.Server runServer
+INFO: Client Thread-1 connected to the server
+Sep 06, 2016 1:46:20 PM server.Server runServer
+INFO: Current amount of clients connected: 1
