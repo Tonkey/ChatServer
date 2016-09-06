@@ -61,8 +61,6 @@ public class ClientHandler implements Runnable {
         } else if (msgAllPattern.matcher(message).matches()) {
 
             String[] parts = message.split("::");
-            
-            System.out.println(parts[1]);
 
             return new ChatMessage(ChatMessageType.MESSAGE, parts[1], null, connectedUser.getUserName());
 
