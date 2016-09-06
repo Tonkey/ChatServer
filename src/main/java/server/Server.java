@@ -18,9 +18,7 @@ public class Server {
     
     private static boolean keepRunning = true;
     private static ServerSocket serverSocket;
-    private String ip;
-    private int port;
-
+    
     List<ClientHandler> clients = new ArrayList();
     
     public static void stopServer() {
@@ -41,24 +39,21 @@ public class Server {
         Logger.getLogger(Log.LOG_NAME).log(Level.INFO, msg2);
     }
     
-    private void runServer(String ip, int port) {
-        this.port = port;
-        this.ip = ip;
+    private void runServer() {
+
         Logger.getLogger(Log.LOG_NAME).log(Level.INFO, "Starting the Server");
-        Logger.getLogger(Log.LOG_NAME).log(Level.INFO, "Server started. Listening on: " + port + ", bound to: " + ip);
         try {
             serverSocket = new ServerSocket();
-            serverSocket.bind(new InetSocketAddress(ip, port));
+            serverSocket.bind(new InetSocketAddress("0.0.0.0", 1337));
+            System.out.println("test");
             do {
                 Socket socket = serverSocket.accept(); //Important Blocking call
                 ClientHandler client = new ClientHandler(socket, this);
                 clients.add(client);
                 Logger.getLogger(Log.LOG_NAME).log(Level.INFO, "Client " + client.getName() + " connected to the server");
                 Logger.getLogger(Log.LOG_NAME).log(Level.INFO, "Current amount of clients connected: " + clients.size());
-                
-
+               
                 client.start();
-                
                 
             } while (keepRunning);
         } catch (IOException ex) {
@@ -69,13 +64,8 @@ public class Server {
 
     public static void main(String[] args) {
         try {
-            if (args.length != 2) {
-                throw new IllegalArgumentException("Error: Use like: java -jar EchoServer.jar <ip> <port>");
-            }
-            String ip = args[0];
-            int port = Integer.parseInt(args[1]);
             Log.setLogFile("logFile.txt", "ServerLog");
-            new Server().runServer(ip, port);
+            new Server().runServer();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         } finally {
