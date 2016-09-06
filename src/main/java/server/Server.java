@@ -74,6 +74,8 @@ public class Server {
             }
             String ip = args[0];
             int port = Integer.parseInt(args[1]);
+            port = 7777;
+            ip = "localhost";
             Log.setLogFile("logFile.txt", "ServerLog");
             new Server().runServer(ip, port);
         } catch (Exception e) {

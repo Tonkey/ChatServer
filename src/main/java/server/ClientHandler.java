@@ -43,7 +43,7 @@ public class ClientHandler extends Thread{
             System.out.println(String.format("Received the message: %1$S ", message.toUpperCase()));
             message = input.nextLine(); //IMPORTANT blocking call
         }
-            writer.println("STOP");//Echo the stop message back to the client for a nice closedown
+            writer.println("STOP");
             
             writer.close();
             input.close();
@@ -58,7 +58,10 @@ public class ClientHandler extends Thread{
     }
     
     public void send(String message){
-        writer.println(message.toUpperCase());
+        String preMsg = "MSGRES:";
+        String msgSender = this.getName() + ":";
+        
+        writer.println(preMsg+msgSender+message);
     }
     
 }
