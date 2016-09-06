@@ -1,8 +1,12 @@
-Sep 06, 2016 1:46:10 PM server.Server runServer
+Sep 06, 2016 11:27:06 PM server.Server runServer
 INFO: Starting the Server
-Sep 06, 2016 1:46:10 PM server.Server runServer
-INFO: Server started. Listening on: 7777, bound to: localhost
-Sep 06, 2016 1:46:20 PM server.Server runServer
-INFO: Client Thread-1 connected to the server
-Sep 06, 2016 1:46:20 PM server.Server runServer
+Sep 06, 2016 11:27:12 PM server.Server runServer
 INFO: Current amount of clients connected: 1
+Sep 06, 2016 11:27:15 PM server.Server runServer
+INFO: Current amount of clients connected: 2
+Sep 06, 2016 11:27:18 PM server.Server runServer
+INFO: Current amount of clients connected: 3
+Sep 06, 2016 11:28:49 PM server.Server removeHandler
+INFO: Client disconnected
+Sep 06, 2016 11:28:49 PM server.Server removeHandler
+INFO: Remaining amount of clients connected: 2
