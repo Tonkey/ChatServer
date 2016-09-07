@@ -35,7 +35,7 @@ public class MessageReader implements Runnable {
     @Override
     public void run() {
         
-        while (stop == false) {
+        while (!stop) {
             
             try {
                 

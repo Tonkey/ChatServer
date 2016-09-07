@@ -49,7 +49,7 @@ public class Server {
 
     }
 
-    public synchronized void updateClientList() {
+    public void updateClientList() {
 
         messageQueue.add(new ChatMessage(
                 ChatMessageType.CLIENTLIST, getUserNamesAsCsv(), null, null));
@@ -75,6 +75,29 @@ public class Server {
         }
 
         return output.toString().replaceAll(",$", "");
+
+    }
+
+    public boolean userNameAvailable(String userName) {
+
+        synchronized (clients) {
+
+            for (ClientHandler client : clients) {
+
+                ConnectedUser user = client.getConnectedUser();
+
+                if (user != null) {
+
+                    if (userName.equalsIgnoreCase(user.getUserName())) {
+                        return false;
+                    }
+
+                }
+
+            };
+        }
+
+        return true;
 
     }
 

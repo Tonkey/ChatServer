@@ -83,25 +83,29 @@ public class ClientHandler implements Runnable {
 
             case LOGIN:
 
-                connectedUser = new ConnectedUser(message.getContent());
+                ConnectedUser userObject = new ConnectedUser(message.getContent());
 
-                server.queueMessage(
-                        new ChatMessage(
-                                ChatMessageType.MESSAGE,
-                                connectedUser.getUserName() + " joined",
-                                null,
-                                "SERVER"
-                        ));
+                if (server.userNameAvailable(userObject.getUserName())) {
 
-                server.queueMessage(
-                        new ChatMessage(
-                                ChatMessageType.MESSAGE,
-                                "Welcome to the server, " + connectedUser.getUserName(),
-                                new String[]{connectedUser.getUserName()},
-                                "SERVER"
-                        ));
+                    connectedUser = userObject;
 
-                server.updateClientList();
+                    server.queueMessage(
+                            new ChatMessage(
+                                    ChatMessageType.MESSAGE,
+                                    connectedUser.getUserName() + " joined",
+                                    null,
+                                    "SERVER"
+                            ));
+
+                    send("Welcome to the server, " + connectedUser.getUserName(), "!");
+
+                    server.updateClientList();
+
+                } else {
+
+                    send("Username not available. Please login again.", "SERVER");
+
+                }
 
                 break;
 
@@ -112,13 +116,17 @@ public class ClientHandler implements Runnable {
 
             case LOGOUT:
 
-                server.queueMessage(
-                        new ChatMessage(
-                                ChatMessageType.MESSAGE,
-                                connectedUser.getUserName() + " disconnected",
-                                null,
-                                "SERVER"
-                        ));
+                if (connectedUser != null) {
+
+                    server.queueMessage(
+                            new ChatMessage(
+                                    ChatMessageType.MESSAGE,
+                                    connectedUser.getUserName() + " disconnected",
+                                    null,
+                                    "SERVER"
+                            ));
+
+                }
 
                 server.removeHandler(this);
                 break;
