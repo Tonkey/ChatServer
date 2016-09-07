@@ -14,11 +14,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Message {
     private String username , message;
-    ConcurrentLinkedQueue<Message> messageList = new ConcurrentLinkedQueue<Message>();
     
-    public Message(String username, String message, ConcurrentLinkedQueue messageList) {
+    public Message(String username, String message) {
         this.username = username;
         this.message = message;
-        this.messageList = messageList;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+    
+    public String getMessage() {
+        return message;
     }
 }

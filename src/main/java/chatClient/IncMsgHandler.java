@@ -13,20 +13,32 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author Michael
  */
-public class IncMsgHandler extends Message implements Runnable {
+public class IncMsgHandler implements Runnable {
 
     Message msg;
     String username, message;
+    chatGUI gui;
 
     ConcurrentLinkedQueue<Message> messageList = new ConcurrentLinkedQueue<Message>();
 
-    public IncMsgHandler(String username, String message, ConcurrentLinkedQueue<Message> messageList) {
-        super(username, message,messageList);
+    public IncMsgHandler(ConcurrentLinkedQueue<Message> messageList, chatGUI gui) {
+        this.messageList = messageList;
+        this.gui = gui;
     }
 
     @Override
     public void run() {
-      messageList.add(msg);
+        
+        while(messageList.peek() != null) {
+            printMessage(messageList.poll());
+        }
+        
+    }
+    
+    private void printMessage(Message message) {
+        
+//        gui.writeMessage(timestamp() + message.getUsername() + " :\t" + message.getMessage());
+        
     }
 
     
