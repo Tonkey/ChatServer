@@ -6,15 +6,10 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Observer;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.concurrent.Executors;
 
 /**
  *
@@ -27,17 +22,10 @@ public class client implements ObserveableInterface, Runnable {
     static Socket socket;
     static private int port;
     static private InetAddress serverAddress;
-    static private String ip;
-
-    StringBuilder stringB = new StringBuilder();
-
     static private Scanner input;
     static private PrintWriter output;
 
     static String[] userList;
-    static ConcurrentLinkedQueue<Message> messageList = new ConcurrentLinkedQueue<Message>();
-
-    ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     public static void connect(String address, int port) throws UnknownHostException, IOException {
 
@@ -48,89 +36,15 @@ public class client implements ObserveableInterface, Runnable {
         observerList = new ArrayList();
     }
 
-    private void addNewUser(String username) {
-        String LoginProtocol = "LOGIN:" + username;
-        output.println(LoginProtocol);
-    }
-
-    public void print(String msg) {
-//        receiveMSG(msg);
-    }
-
     public void closeConnection() {
         try {
+            keeprunning = false;
             socket.close();
-
         } catch (IOException ex) {
             Logger.getLogger(client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-
-//    private void recieveProtocol(String protocol) {
-//
-//        String[] protocolPart = protocol.split(":");
-//
-//        switch (protocolPart[0]) {
-//            case "CLIENTLIST":
-//                
-//                executorService.execute(new MessageList(protocolPart[1],userList, userStrings));
-//
-//            case "MSGRES":
-//
-//                executorService.execute(new IncMsgHandler(protocolPart[1], protocolPart[2], messageList, gui));
-//
-//        }
-//
-//    }
-
-    private void sendMSG(String msg) {
-
-        try {
-
-//            String protocol = "MSG:" + gui.getReceivers() + ":" + msg;
-            output = new PrintWriter(socket.getOutputStream(), true);
-//            output.print(protocol);
-
-        } catch (IOException ex) {
-            Logger.getLogger(client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public static void main(String[] args) {
-
-    }
-
-//    private static void startChat() {
-//        /* Set the Nimbus look and feel */
-//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-//         */
-//        try {
-//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-//                if ("Nimbus".equals(info.getName())) {
-//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-//                    break;
-//                }
-//            }
-//        } catch (ClassNotFoundException ex) {
-//            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (InstantiationException ex) {
-//            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (IllegalAccessException ex) {
-//            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-//            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        //</editor-fold>    
-//        /* Create and display the form */
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-//            public void run() {
-//                new chatGUI().setVisible(true);
-//            }
-//        });
-//    }
     @Override
     public void addObserver(ObserverInterface o) {
         observerList.add(o);
@@ -138,23 +52,23 @@ public class client implements ObserveableInterface, Runnable {
 
     @Override
     public void removeObserver(ObserverInterface o) {
-        // not used in this case
+        observerList.remove(o);
     }
 
     @Override
     public void notifyObserver(String msg) {
 
-        for (ObserverInterface o : observerList) {
+        observerList.stream().forEach((o) -> {
             o.update(msg);
-        }
+        });
 
     }
 
     @Override
-    public void notifyObserver(String[] userList) {
-        for (ObserverInterface o : observerList) {
+    public synchronized void notifyObserver(String[] userList) {
+        observerList.stream().forEach((o) -> {
             o.update(userList);
-        }
+        });
     }
 
     boolean keeprunning = true;
@@ -162,12 +76,8 @@ public class client implements ObserveableInterface, Runnable {
     @Override
     public void run() {
         
-        do{
-            if(input.hasNextLine()){
-                Thread read = new Thread(new IncMsgHandler(socket));
-                read.start();
-            }
-        } while(keeprunning);
+        Thread t1 = new Thread(new IncMsgHandler(socket,input));
+        t1.start();
         
     }
 

@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,14 +19,13 @@ import java.util.logging.Logger;
  */
 public class IncMsgHandler implements Runnable {
 
-    Message msg;
-    String username, message;
     Socket socket;
-    static private Scanner input;
+    Scanner input;
     client client = new client();
 
-    public IncMsgHandler(Socket socket) {
+    public IncMsgHandler(Socket socket, Scanner input) {
         this.socket = socket;
+        this.input = input;
     }
 
     @Override
@@ -35,24 +33,25 @@ public class IncMsgHandler implements Runnable {
 
         try {
             input = new Scanner(socket.getInputStream());
+            while (client.keeprunning) {
+                if (input.hasNextLine()) {
+                    String protocol = input.nextLine();
 
-            while (socket.isConnected()) {
+                    String[] protocolPart = protocol.split(":");
 
-                String protocol = input.nextLine();
+                    switch (protocolPart[0]) {
+                        case "CLIENTLIST":
+                            String[] listOfUsers = protocolPart[1].split(",");
+                            client.notifyObserver(listOfUsers);
+                            continue;
+                        case "MSGRES":
+                            client.notifyObserver(timestamp() + protocolPart[1] + " : " + protocolPart[2] + "\n");
+                            continue;
+                        default:
+                            break;
+                    }
 
-                String[] protocolPart = protocol.split(":");
-
-                switch (protocolPart[0]) {
-                    case "CLIENTLIST":
-                        String[] listOfUsers = protocolPart[1].split(",");
-                        client.notifyObserver(listOfUsers);
-                        continue;
-                    case "MSGRES":
-                        client.notifyObserver(timestamp() + protocolPart[1] + " : " + protocolPart[2] + "\n");
-                        continue;
-                    
                 }
-
             }
 
         } catch (IOException ex) {
