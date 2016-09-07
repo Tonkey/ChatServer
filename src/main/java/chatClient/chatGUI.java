@@ -5,18 +5,21 @@
  */
 package chatClient;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 
 /**
  *
  * @author Michael
  */
-public class chatGUI extends javax.swing.JFrame {
+public class chatGUI extends javax.swing.JFrame implements ObserverInterface{
 
-    client client = new client();
+    client client;
     List<String> clientList;
 
     /**
@@ -24,6 +27,17 @@ public class chatGUI extends javax.swing.JFrame {
      */
     public chatGUI() {
         initComponents();
+        this.client = new client();
+        
+        client.addObserver(this);
+        
+        try {
+            client.connect("0.0.0.0", 1337);
+        } catch (IOException ex) {
+            Logger.getLogger(chatGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
         clientList = new ArrayList<String>();
         updatePanel();
     }
@@ -53,7 +67,10 @@ public class chatGUI extends javax.swing.JFrame {
         String recievers = "";
         for (int i = 0; i < userTable.getRowCount(); i++) {
             if (userTable.getValueAt(i, 1).equals(true)) {
-
+                if(i == userTable.getRowCount())
+                    recievers += userTable.getValueAt(i, 0);
+                
+                
                 recievers += userTable.getValueAt(i, 0) + ",";
             }
         }
@@ -186,7 +203,7 @@ public class chatGUI extends javax.swing.JFrame {
 
         String test = jTextField1.getText();
         System.out.println(test);
-        client.send(jTextField1.getText());
+//        client.send(jTextField1.getText());
         receiveMSG("hej med dig");
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -203,6 +220,44 @@ public class chatGUI extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTable userTable;
     // End of variables declaration//GEN-END:variables
+
+      public static void main(String[] args){
+
+
+         /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>    
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new chatGUI().setVisible(true);
+            }
+        });
+      }
+    
+    @Override
+    public void update(String msg) {
+       
+    }
 
 
 }

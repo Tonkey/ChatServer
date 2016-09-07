@@ -11,15 +11,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author Michael
  */
-public class OutMsgHandler extends Message implements Runnable {
+public class OutMsgHandler implements Runnable {
 
     public OutMsgHandler(String username, String message, ConcurrentLinkedQueue<Message> messageList) {
-        super(username, message,messageList);
+   
     }
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
     
 }
