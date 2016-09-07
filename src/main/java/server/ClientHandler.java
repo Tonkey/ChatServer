@@ -30,9 +30,9 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(Socket socket, Server server) {
 
-        msgPattern = Pattern.compile("MSG:.+:.+");
-        msgAllPattern = Pattern.compile("MSG::.+");
-        loginPattern = Pattern.compile("LOGIN:.+");
+        msgPattern = Pattern.compile("MSG:[^:]+:.{1,255}");
+        msgAllPattern = Pattern.compile("MSG::+.{1,255}");
+        loginPattern = Pattern.compile("LOGIN:[^:,\\s]{1,25}");
         logoutPattern = Pattern.compile("LOGOUT:");
 
         try {
@@ -84,8 +84,8 @@ public class ClientHandler implements Runnable {
 
             case LOGIN:
                 
-                synchronized(this) {
-                    this.connectedUser = new ConnectedUser(message.getContent());
+                synchronized(connectedUser) {
+                    connectedUser = new ConnectedUser(message.getContent());
                 }
 
                 server.queueMessage(
@@ -177,8 +177,10 @@ public class ClientHandler implements Runnable {
         writer.println("MSGRES:" + sender + ":" + message);
     }
 
-    public synchronized ConnectedUser getConnectedUser() {
-        return connectedUser;
+    public ConnectedUser getConnectedUser() {
+        synchronized(connectedUser) {
+            return connectedUser;
+        }
     }
 
     public void closeConnection() {
