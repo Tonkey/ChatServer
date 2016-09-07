@@ -83,7 +83,10 @@ public class ClientHandler implements Runnable {
         switch (message.getMessageType()) {
 
             case LOGIN:
-                this.connectedUser = new ConnectedUser(message.getContent());
+                
+                synchronized(this) {
+                    this.connectedUser = new ConnectedUser(message.getContent());
+                }
 
                 server.queueMessage(
                         new ChatMessage(
@@ -93,15 +96,15 @@ public class ClientHandler implements Runnable {
                                 "SERVER"
                         ));
 
-                server.userNames.add(connectedUser);
-
                 server.queueMessage(
                         new ChatMessage(
-                                ChatMessageType.CLIENTLIST,
+                                ChatMessageType.MESSAGE,
                                 "Welcome to the server, " + connectedUser.getUserName(),
-                                null,
+                                new String[]{connectedUser.getUserName()},
                                 "SERVER"
                         ));
+                
+                server.updateClientList();
 
                 break;
 
@@ -121,7 +124,6 @@ public class ClientHandler implements Runnable {
                         ));
 
                 server.removeHandler(this);
-                server.userNames.remove(connectedUser);
                 break;
 
         }
@@ -154,7 +156,6 @@ public class ClientHandler implements Runnable {
                 } catch (NoSuchElementException | IllegalStateException e) {
 
                     server.removeHandler(this);
-                    server.userNames.remove(connectedUser);
 
                 }
 
@@ -165,12 +166,18 @@ public class ClientHandler implements Runnable {
         }
 
     }
+    
+    public void updateClientList(ChatMessage msg) {
+        
+        writer.println("CLIENTLIST:" + msg.getContent());
+        
+    }
 
-    public synchronized void send(String message, String sender) {
+    public void send(String message, String sender) {
         writer.println("MSGRES:" + sender + ":" + message);
     }
 
-    public ConnectedUser getConnectedUser() {
+    public synchronized ConnectedUser getConnectedUser() {
         return connectedUser;
     }
 

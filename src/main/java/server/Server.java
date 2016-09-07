@@ -5,7 +5,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
@@ -22,7 +21,6 @@ public class Server {
     private MessageReader messageReader;
 
     List<ClientHandler> clients = new ArrayList();
-    List<ConnectedUser> userNames = new ArrayList();
 
     LinkedBlockingQueue messageQueue = new LinkedBlockingQueue();
 
@@ -30,56 +28,109 @@ public class Server {
         keepRunning = false;
     }
 
+    /**
+     * Does not need synchronized because it uses a BlockingQueue. Multiple
+     * threads trying to queue messages at the same time will wait.
+     *
+     * @param message
+     */
     public void queueMessage(ChatMessage message) {
 
         messageQueue.add(message);
 
     }
 
+    public synchronized void updateClientList() {
+
+        messageQueue.add(new ChatMessage(
+                ChatMessageType.CLIENTLIST, getUserNamesAsCsv(), null, null));
+
+    }
+
+    private String getUserNamesAsCsv() {
+        
+        StringBuilder output = new StringBuilder(110);
+
+        clients.stream().forEach((ClientHandler client) -> {
+
+            ConnectedUser u = client.getConnectedUser();
+
+            if (u != null) {
+                output.append(client.getConnectedUser().getUserName()).append(",");;
+            }
+
+        });
+
+        return output.toString().replaceAll(",$", "");
+
+    }
+
+    /**
+     * Only called by the single thread (MessageReader) polling the messageQueue
+     *
+     * @param msg
+     */
     public void sendMessage(ChatMessage msg) {
 
-        clients.stream().forEach((client) -> {
+        clients.stream().forEach((ClientHandler client) -> {
 
             ConnectedUser user = client.getConnectedUser();
 
             // Only write to users that have logged in (not just connected)
             if (user != null) {
-                String userName = user.getUserName();
-                // Don't send to self
-                if (!userName.equalsIgnoreCase(msg.getSender())) {
 
-                    // Get all receivers (will be null if message is for all connected users)
-                    String[] receivers = msg.getReceivers();
-                    // Loop all recipients of the message (if sender != self)
-                    if (receivers != null) {
-                        for (String recipientName : receivers) {
+                if (msg.getMessageType() == ChatMessageType.CLIENTLIST) {
 
-                            // If recipient is part of the threads user, write to the message to that thread
-                            if (recipientName.equalsIgnoreCase(userName)) {
+                    client.updateClientList(msg);
 
-                                client.send(msg.getContent(), msg.getSender());
+                } else {
+
+                    String userName = user.getUserName();
+                    // Don't send to self
+                    if (!userName.equalsIgnoreCase(msg.getSender())) {
+
+                        // Get all receivers (will be null if message is for all connected users)
+                        String[] receivers = msg.getReceivers();
+                        // Loop all recipients of the message (if sender != self)
+                        if (receivers != null) {
+                            for (String recipientName : receivers) {
+
+                                // If recipient is part of the threads user, write to the message to that thread
+                                if (recipientName.equalsIgnoreCase(userName)) {
+
+                                    client.send(msg.getContent(), msg.getSender());
+
+                                }
 
                             }
 
-                        }
-                        
-                    } else {
-                        
-                        client.send(msg.getContent(), msg.getSender());
-                        
-                    }
+                        } else {
 
+                            client.send(msg.getContent(), msg.getSender());
+
+                        }
+
+                    }
                 }
             }
         });
 
     }
 
-    public void removeHandler(ClientHandler ch) {
+    /**
+     * Synchronized because multiple threads may attempt to remove their handler
+     * from the list at the same time. The method is called by the
+     * ClientHandlers themselves.
+     *
+     * @param ch
+     */
+    public synchronized void removeHandler(ClientHandler ch) {
 
         if (clients.remove(ch)) {
 
             ch.closeConnection();
+            
+            updateClientList();
 
             String msg1 = "Client disconnected";
             Logger.getLogger(Log.LOG_NAME).log(Level.INFO, msg1);
