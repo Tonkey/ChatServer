@@ -11,6 +11,6 @@ package server;
  */
 public enum ChatMessageType {
     
-    LOGIN, MESSAGE, MESSAGEALL, LOGOUT;
+    LOGIN, MESSAGE, LOGOUT, CLIENTLIST;
     
 }

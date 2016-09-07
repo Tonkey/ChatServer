@@ -3,6 +3,8 @@ package server;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,31 +14,31 @@ import java.util.regex.Pattern;
  *
  * @author nickl
  */
-public class ClientHandler extends Thread {
+public class ClientHandler implements Runnable {
 
     private Scanner input;
     private PrintWriter writer;
-    private Socket socket;
+    private final Socket socket;
     private Pattern msgPattern;
     private Pattern loginPattern;
-
-    
+    private Pattern msgAllPattern;
     private Pattern logoutPattern;
 
     private ConnectedUser connectedUser;
 
-    private Server server;
+    private final Server server;
 
     public ClientHandler(Socket socket, Server server) {
 
         msgPattern = Pattern.compile("MSG:.+:.+");
+        msgAllPattern = Pattern.compile("MSG::.+");
         loginPattern = Pattern.compile("LOGIN:.+");
         logoutPattern = Pattern.compile("LOGOUT:");
 
         try {
             input = new Scanner(socket.getInputStream());
             writer = new PrintWriter(socket.getOutputStream(), true);
-            
+
         } catch (IOException e) {
 
         }
@@ -54,23 +56,21 @@ public class ClientHandler extends Thread {
 
             String[] parts = message.split(":");
 
-            if (parts[1].equalsIgnoreCase("")) {
+            return new ChatMessage(ChatMessageType.MESSAGE, parts[2], parts[1].split(","), connectedUser.getUserName());
 
-                return new ChatMessage(ChatMessageType.MESSAGEALL, parts[2], null);
+        } else if (msgAllPattern.matcher(message).matches()) {
 
-            } else {
+            String[] parts = message.split("::");
 
-                return new ChatMessage(ChatMessageType.MESSAGE, parts[2], parts[1].split(","));
-
-            }
+            return new ChatMessage(ChatMessageType.MESSAGE, parts[1], null, connectedUser.getUserName());
 
         } else if (loginPattern.matcher(message).matches()) {
 
-            return new ChatMessage(ChatMessageType.LOGIN, message.split(":")[1], null);
+            return new ChatMessage(ChatMessageType.LOGIN, message.split(":")[1], null, null);
 
         } else if (logoutPattern.matcher(message).matches()) {
 
-            return new ChatMessage(ChatMessageType.LOGOUT, "", null);
+            return new ChatMessage(ChatMessageType.LOGOUT, "", null, null);
 
         }
 
@@ -78,71 +78,112 @@ public class ClientHandler extends Thread {
 
     }
 
+    public void processMessage(ChatMessage message) {
+
+        switch (message.getMessageType()) {
+
+            case LOGIN:
+                this.connectedUser = new ConnectedUser(message.getContent());
+
+                server.queueMessage(
+                        new ChatMessage(
+                                ChatMessageType.MESSAGE,
+                                connectedUser.getUserName() + " joined",
+                                null,
+                                "SERVER"
+                        ));
+
+                server.userNames.add(connectedUser);
+
+                server.queueMessage(
+                        new ChatMessage(
+                                ChatMessageType.CLIENTLIST,
+                                "Welcome to the server, " + connectedUser.getUserName(),
+                                null,
+                                "SERVER"
+                        ));
+
+                break;
+
+            case MESSAGE:
+
+                server.queueMessage(message);
+                break;
+
+            case LOGOUT:
+
+                server.queueMessage(
+                        new ChatMessage(
+                                ChatMessageType.MESSAGE,
+                                connectedUser.getUserName() + " disconnected",
+                                null,
+                                "SERVER"
+                        ));
+
+                server.removeHandler(this);
+                server.userNames.remove(connectedUser);
+                break;
+
+        }
+
+    }
+
     @Override
     public void run() {
 
         try {
-            
-            send("Welcome to the server " + this.getName());
 
+            //writer.println("Welcome to the server . Please enter your username:");
             while (true) {
-                ChatMessage msg = this.readMessage();
 
-                if (msg == null) {
+                try {
+                    // This will block until client sends something
+                    ChatMessage msg = readMessage();
 
-                    writer.println("MSGRES:SERVER:Invalid command.");
-                    continue;
+                    if (msg == null) {
 
-                }
-
-                switch (msg.getMessageType()) {
-
-                    case LOGIN:
-                        
-                        if (this.connectedUser == null) {
-                            this.connectedUser = new ConnectedUser(msg.getContent());
-                        }
+                        // Directly answer client from same thread if invalid request and re-run while loop
+                        send("Invalid Command", "SERVER");
                         continue;
-                        
-                    case MESSAGE:
-                        
+
+                    }
+
+                    // If not, queue it
+                    processMessage(msg);
+
+                } catch (NoSuchElementException | IllegalStateException e) {
+
+                    server.removeHandler(this);
+                    server.userNames.remove(connectedUser);
 
                 }
 
             }
-/*
-            System.out.println(String.format("Received the message: %1$S ", message));
-            while (!message.equals("STOP")) {
-                send(message);
-                System.out.println(String.format("Received the message: %1$S ", message.toUpperCase()));
-                message = input.nextLine(); //IMPORTANT blocking call
-            }
-            writer.println("STOP");
 
-            writer.close();
-            input.close();
-            socket.close();
-
-            server.removeHandler(this);
-            System.out.println("Closed a Connection");
-*/
         } catch (Exception ex) {
-            System.out.println("something went wrong while closing thread:" + this.getName());
             Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-
     }
 
-    public void send(String message) {
-        String preMsg = "MSGRES:";
-        String msgSender = this.getName() + ":";
-
-        writer.println(preMsg + msgSender + message);
+    public synchronized void send(String message, String sender) {
+        writer.println("MSGRES:" + sender + ":" + message);
     }
-    
+
     public ConnectedUser getConnectedUser() {
         return connectedUser;
+    }
+
+    public void closeConnection() {
+
+        try {
+            writer.close();
+            input.close();
+            socket.close();
+        } catch (IOException ex) {
+            //Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
 }

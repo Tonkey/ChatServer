@@ -19,4 +19,8 @@ public class ConnectedUser {
         
     }
 
+    public String getUserName() {
+        return userName;
+    }
+    
 }
