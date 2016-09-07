@@ -102,22 +102,22 @@ public class client extends chatGUI {
         }
     }
 
-    private void recieveProtocol(String protocol) {
-
-        String[] protocolPart = protocol.split(":");
-
-        switch (protocolPart[0]) {
-            case "CLIENTLIST":
-                
-                executorService.execute(new MessageList(protocolPart[1],userList, userStrings));
-
-            case "MSGRES":
-
-                executorService.execute(new IncMsgHandler(protocolPart[1], protocolPart[2], messageList, gui));
-
-        }
-
-    }
+//    private void recieveProtocol(String protocol) {
+//
+//        String[] protocolPart = protocol.split(":");
+//
+//        switch (protocolPart[0]) {
+//            case "CLIENTLIST":
+//                
+//                executorService.execute(new MessageList(protocolPart[1],userList, userStrings));
+//
+//            case "MSGRES":
+//
+//                executorService.execute(new IncMsgHandler(protocolPart[1], protocolPart[2], messageList, gui));
+//
+//        }
+//
+//    }
 
     private String sendMSG(String msg) {
 
