@@ -20,11 +20,9 @@ import java.util.concurrent.Executors;
  *
  * @author Michael
  */
-public class client implements ObserveableInterface{
+public class client implements ObserveableInterface, Runnable {
 
     static List<ObserverInterface> observerList;
-
-        
 
     static Socket socket;
     static private int port;
@@ -42,7 +40,7 @@ public class client implements ObserveableInterface{
     ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     public static void connect(String address, int port) throws UnknownHostException, IOException {
-        port = 80;
+
         serverAddress = InetAddress.getByName(address);
         socket = new Socket(serverAddress, port);
         input = new Scanner(socket.getInputStream());
@@ -54,8 +52,6 @@ public class client implements ObserveableInterface{
         String LoginProtocol = "LOGIN:" + username;
         output.println(LoginProtocol);
     }
-
-    
 
     public void print(String msg) {
 //        receiveMSG(msg);
@@ -99,9 +95,9 @@ public class client implements ObserveableInterface{
     }
 
     public static void main(String[] args) {
-        
+
     }
-    
+
 //    private static void startChat() {
 //        /* Set the Nimbus look and feel */
 //        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -158,16 +154,22 @@ public class client implements ObserveableInterface{
         }
     }
 
+    boolean keeprunning = true;
     
+    @Override
     public void run() {
-
-        Thread incoming = new Thread(new IncMsgHandler(socket));
-        incoming.start();
-
+        
+        do{
+            if(input.hasNextLine()){
+                Thread read = new Thread(new IncMsgHandler(socket));
+                read.start();
+            }
+        } while(keeprunning);
+        
     }
-    
+
     public void sendMessage(String msg) {
-        output.write(msg);
+        output.println(msg);
     }
 
 }

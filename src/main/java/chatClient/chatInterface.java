@@ -31,14 +31,15 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         initComponents();
 
         client = new client();
-
-
+        
+        Thread run = new Thread(client);
         try {
-            client.connect("0.0.0.0", 1337);
+            client.connect("localhost", 1337);
+        run.start();
         } catch (IOException ex) {
             Logger.getLogger(chatGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
         client.addObserver(this);
         clientList = new ArrayList();
     }
@@ -203,9 +204,9 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
         if (!output.getText().isEmpty()) {
             String msg = "MSG:" + getReceivers() + ":" + output.getText();
-            client.sendMessage(msg);
             chatWindow.append(timestamp() + msg + "\n");
-
+            chatWindow.updateUI();
+            client.sendMessage(msg);
         }
     }//GEN-LAST:event_sendButtonActionPerformed
 
@@ -267,6 +268,7 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
  @Override
     public void update(String msg) {
         chatWindow.append(msg);
+        chatWindow.updateUI();
     }
 
     @Override
