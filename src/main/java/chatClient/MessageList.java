@@ -5,8 +5,6 @@
  */
 package chatClient;
 
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  *
@@ -14,29 +12,20 @@ import java.util.List;
  */
 public class MessageList implements Runnable {
 
-    static List<String> userList = new LinkedList<>();
-    String[] userString;
+    String[] userList;
     String users;
     chatGUI gui;
     
 
-    public MessageList(String users, List<String> userList, String[] userString, chatGUI gui) {
+    public MessageList(String users,  String[] userString, chatGUI gui) {
         this.users = users;
         this.userList = userList;
-        this.userString = userString;
         this.gui = gui;
     }
 
     public void run() {
-
-        userString = users.split(",");
-               
-        for (String s : userString) {
-            userList.add(s);
-        }
-        
-        gui.setUserList(userList);
-        
+        userList = users.split(",");
+        gui.setUserList(userList);       
     }
 
 }

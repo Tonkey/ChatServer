@@ -3,7 +3,6 @@ package server;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -30,9 +29,9 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(Socket socket, Server server) {
 
-        msgPattern = Pattern.compile("MSG:.+:.+");
-        msgAllPattern = Pattern.compile("MSG::.+");
-        loginPattern = Pattern.compile("LOGIN:.+");
+        msgPattern = Pattern.compile("MSG:[^:]+:.{1,255}");
+        msgAllPattern = Pattern.compile("MSG::+.{1,255}");
+        loginPattern = Pattern.compile("LOGIN:[^:,\\s]{1,25}");
         logoutPattern = Pattern.compile("LOGOUT:");
 
         try {
@@ -83,28 +82,30 @@ public class ClientHandler implements Runnable {
         switch (message.getMessageType()) {
 
             case LOGIN:
-                
-                synchronized(this) {
-                    this.connectedUser = new ConnectedUser(message.getContent());
+
+                ConnectedUser userObject = new ConnectedUser(message.getContent());
+
+                if (server.userNameAvailable(userObject.getUserName())) {
+
+                    connectedUser = userObject;
+
+                    server.queueMessage(
+                            new ChatMessage(
+                                    ChatMessageType.MESSAGE,
+                                    connectedUser.getUserName() + " joined",
+                                    null,
+                                    "SERVER"
+                            ));
+
+                    send("Welcome to the server, " + connectedUser.getUserName(), "!");
+
+                    server.updateClientList();
+
+                } else {
+
+                    send("Username not available. Please login again.", "SERVER");
+
                 }
-
-                server.queueMessage(
-                        new ChatMessage(
-                                ChatMessageType.MESSAGE,
-                                connectedUser.getUserName() + " joined",
-                                null,
-                                "SERVER"
-                        ));
-
-                server.queueMessage(
-                        new ChatMessage(
-                                ChatMessageType.MESSAGE,
-                                "Welcome to the server, " + connectedUser.getUserName(),
-                                new String[]{connectedUser.getUserName()},
-                                "SERVER"
-                        ));
-                
-                server.updateClientList();
 
                 break;
 
@@ -115,13 +116,17 @@ public class ClientHandler implements Runnable {
 
             case LOGOUT:
 
-                server.queueMessage(
-                        new ChatMessage(
-                                ChatMessageType.MESSAGE,
-                                connectedUser.getUserName() + " disconnected",
-                                null,
-                                "SERVER"
-                        ));
+                if (connectedUser != null) {
+
+                    server.queueMessage(
+                            new ChatMessage(
+                                    ChatMessageType.MESSAGE,
+                                    connectedUser.getUserName() + " disconnected",
+                                    null,
+                                    "SERVER"
+                            ));
+
+                }
 
                 server.removeHandler(this);
                 break;
@@ -166,19 +171,21 @@ public class ClientHandler implements Runnable {
         }
 
     }
-    
+
     public void updateClientList(ChatMessage msg) {
-        
+
         writer.println("CLIENTLIST:" + msg.getContent());
-        
+
     }
 
     public void send(String message, String sender) {
         writer.println("MSGRES:" + sender + ":" + message);
     }
 
-    public synchronized ConnectedUser getConnectedUser() {
+    public ConnectedUser getConnectedUser() {
+
         return connectedUser;
+
     }
 
     public void closeConnection() {

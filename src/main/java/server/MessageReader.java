@@ -35,11 +35,11 @@ public class MessageReader implements Runnable {
     @Override
     public void run() {
         
-        while (stop == false) {
+        while (!stop) {
             
             try {
                 
-                ChatMessage msg = (ChatMessage)server.messageQueue.poll(100, TimeUnit.MILLISECONDS);
+                ChatMessage msg = (ChatMessage)server.getMessageQueue().poll(100, TimeUnit.MILLISECONDS);
                 
                 if (msg != null) {
                     
