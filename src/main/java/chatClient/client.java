@@ -5,19 +5,22 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  *
  * @author Michael
  */
-public class client {
+public class client extends chatGUI {
 
     static Socket socket;
     static private int port;
@@ -30,6 +33,13 @@ public class client {
     static private PrintWriter output;
 
     static List<String> userList = new LinkedList<>();
+    static String[] userStrings;
+    static ConcurrentLinkedQueue<Message> messageList = new ConcurrentLinkedQueue<Message>();
+
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+    
+    
+    chatGUI gui = new chatGUI();
 
     public static void main(String[] args) throws IOException {
 
@@ -51,7 +61,8 @@ public class client {
     }
 
     private void addNewUser(String username) {
-
+        String LoginProtocol = "LOGIN:" + username;
+        output.println(LoginProtocol);
     }
 
     private void Login() throws IOException {
@@ -62,14 +73,14 @@ public class client {
         int count = 0;
         while (true) {
 
-            output.println("Please write your username...\n");
+            print("Please write your username...\n");
             String newInput = input.nextLine();
             while (userList.contains(newInput)) {
                 while (count < 4) {
                     count++;
-                    output.println("sorry user is already in use, please try another...");
+                    print("sorry user is already in use, please try another...");
                     if (count > 3) {
-                        output.println("too many illegal tries ...");
+                        print("too many illegal tries ...");
                         socket.close();
                     }
                 }
@@ -78,7 +89,11 @@ public class client {
         }
     }
 
-    private void Logout() {
+    public void print(String msg) {
+        receiveMSG(msg);
+    }
+
+    public void logout() {
         try {
             socket.close();
 
@@ -88,22 +103,20 @@ public class client {
     }
 
     private void recieveProtocol(String protocol) {
-        
-        String[] protocolParts = protocol.split(":");
 
-        switch(protocolParts[0]) {
+        String[] protocolPart = protocol.split(":");
+
+        switch (protocolPart[0]) {
             case "CLIENTLIST":
-            
-            case "MSGRES":
-                recieveMSG(timestamp() + protocolParts[1] + ": " + protocolParts[2]);
-        }
-        
-      
+                
+                executorService.execute(new MessageList(protocolPart[1],userList, userStrings));
 
-    }
-    
-    public void recieveMSG(String msg) {
-        
+            case "MSGRES":
+
+                executorService.execute(new IncMsgHandler(protocolPart[1], protocolPart[2], messageList, gui));
+
+        }
+
     }
 
     private String sendMSG(String msg) {
@@ -112,6 +125,11 @@ public class client {
         String protocol = "MSG:" + users + ":" + msg;
 
         return protocol;
+    }
+
+    public static void send(String msg) {
+        chatGUI client = new chatGUI();
+
     }
 
     private static void startChat() {
@@ -136,23 +154,12 @@ public class client {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-
+        //</editor-fold>    
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new chatGUI().setVisible(true);
             }
         });
-    }
-
-    private static String timestamp() {
-        Calendar calendar = new GregorianCalendar();
-        int HOUR = calendar.get(Calendar.HOUR);
-        int MINUTE = calendar.get(Calendar.MINUTE);
-        int SECOND = calendar.get(Calendar.SECOND);
-
-        return HOUR + ":" + MINUTE + ":" + SECOND + ": ";
-
     }
 }
