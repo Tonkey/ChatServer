@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class Server {
 
-    private boolean keepRunning;
+    private static boolean keepRunning;
     private ServerSocket serverSocket;
     private MessageReader messageReader;
 
@@ -29,7 +29,7 @@ public class Server {
         this.messageQueue = new LinkedBlockingQueue();
     }
 
-    public void stopServer() {
+    public static void stopServer() {
         keepRunning = false;
     }
 

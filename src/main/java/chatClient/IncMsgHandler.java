@@ -19,45 +19,55 @@ import java.util.logging.Logger;
  */
 public class IncMsgHandler implements Runnable {
 
-    Socket socket;
-    Scanner input;
-    client client = new client();
-
-    public IncMsgHandler(Socket socket, Scanner input) {
+    private Socket socket;
+    private Scanner input;
+    private client client;
+    private String useInTest;
+    
+    
+    public IncMsgHandler(Socket socket, Scanner input, client client) {
         this.socket = socket;
         this.input = input;
+        this.client = client;
     }
 
     @Override
     public void run() {
-
+        
         try {
             input = new Scanner(socket.getInputStream());
-            while (client.keeprunning) {
-                if (input.hasNextLine()) {
+            while (true) {
+//                if (input.hasNextLine()) {
+                    
                     String protocol = input.nextLine();
-
+                    this.client.setLastMsgRecieved(protocol);
+                    
                     String[] protocolPart = protocol.split(":");
-
+                    
                     switch (protocolPart[0]) {
                         case "CLIENTLIST":
+                            
                             String[] listOfUsers = protocolPart[1].split(",");
                             client.notifyObserver(listOfUsers);
-                            continue;
+                            break;
                         case "MSGRES":
-                            client.notifyObserver(timestamp() + protocolPart[1] + " : " + protocolPart[2] + "\n");
-                            continue;
+                            String someMSg = protocolPart[1] + " : " + protocolPart[2] + "\n";
+                            this.client.setLastMsgRecieved(someMSg);
+                            client.notifyObserver(someMSg);
+                            break;
                         default:
                             break;
                     }
 
-                }
+//                } else {
+//                    Thread.sleep(500);
+//                }
             }
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(IncMsgHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+//        useInTest="exiting now";
     }
 
     /**
@@ -70,4 +80,10 @@ public class IncMsgHandler implements Runnable {
         return formatted.format(calendar.getTime()) + ": ";
     }
 
+    public String getProtocol() {
+        return useInTest;
+    }
+    
+    
+    
 }

@@ -25,9 +25,11 @@ public class client implements ObserveableInterface, Runnable {
     static private Scanner input;
     static private PrintWriter output;
 
-    static String[] userList;
+    private static String[] aUserList;
+    
+    private String lastMsgRecieved;
 
-    public static void connect(String address, int port) throws UnknownHostException, IOException {
+    public void connect(String address, int port) throws UnknownHostException, IOException {
 
         serverAddress = InetAddress.getByName(address);
         socket = new Socket(serverAddress, port);
@@ -57,7 +59,7 @@ public class client implements ObserveableInterface, Runnable {
 
     @Override
     public void notifyObserver(String msg) {
-
+        lastMsgRecieved = msg;
         observerList.stream().forEach((o) -> {
             o.update(msg);
         });
@@ -66,23 +68,37 @@ public class client implements ObserveableInterface, Runnable {
 
     @Override
     public synchronized void notifyObserver(String[] userList) {
+        
+        aUserList=userList;
         observerList.stream().forEach((o) -> {
             o.update(userList);
         });
     }
 
     boolean keeprunning = true;
-    
+    private IncMsgHandler iMH;
     @Override
     public void run() {
-        
-        Thread t1 = new Thread(new IncMsgHandler(socket,input));
+        iMH = new IncMsgHandler(socket, input, this);
+        Thread t1 = new Thread(iMH);
         t1.start();
         
     }
 
     public void sendMessage(String msg) {
         output.println(msg);
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public String getlastMsgRecieved(){
+        return lastMsgRecieved;
+    }
+
+    public void setLastMsgRecieved(String lastMsgRecieved) {
+        this.lastMsgRecieved = lastMsgRecieved;
     }
 
 }
