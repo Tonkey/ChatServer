@@ -39,7 +39,7 @@ public class MessageReader implements Runnable {
             
             try {
                 
-                ChatMessage msg = (ChatMessage)server.messageQueue.poll(100, TimeUnit.MILLISECONDS);
+                ChatMessage msg = (ChatMessage)server.getMessageQueue().poll(100, TimeUnit.MILLISECONDS);
                 
                 if (msg != null) {
                     

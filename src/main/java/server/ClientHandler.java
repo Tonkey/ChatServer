@@ -3,7 +3,6 @@ package server;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -83,10 +82,8 @@ public class ClientHandler implements Runnable {
         switch (message.getMessageType()) {
 
             case LOGIN:
-                
-                synchronized(connectedUser) {
-                    connectedUser = new ConnectedUser(message.getContent());
-                }
+
+                connectedUser = new ConnectedUser(message.getContent());
 
                 server.queueMessage(
                         new ChatMessage(
@@ -103,7 +100,7 @@ public class ClientHandler implements Runnable {
                                 new String[]{connectedUser.getUserName()},
                                 "SERVER"
                         ));
-                
+
                 server.updateClientList();
 
                 break;
@@ -166,11 +163,11 @@ public class ClientHandler implements Runnable {
         }
 
     }
-    
+
     public void updateClientList(ChatMessage msg) {
-        
+
         writer.println("CLIENTLIST:" + msg.getContent());
-        
+
     }
 
     public void send(String message, String sender) {
@@ -178,9 +175,9 @@ public class ClientHandler implements Runnable {
     }
 
     public ConnectedUser getConnectedUser() {
-        synchronized(connectedUser) {
-            return connectedUser;
-        }
+
+        return connectedUser;
+
     }
 
     public void closeConnection() {

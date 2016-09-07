@@ -16,16 +16,25 @@ import java.util.logging.Logger;
  */
 public class Server {
 
-    private boolean keepRunning = true;
+    private boolean keepRunning;
     private ServerSocket serverSocket;
     private MessageReader messageReader;
 
-    List<ClientHandler> clients = new ArrayList();
+    private final List<ClientHandler> clients;
+    private final LinkedBlockingQueue messageQueue;
 
-    LinkedBlockingQueue messageQueue = new LinkedBlockingQueue();
+    public Server() {
+        this.keepRunning = true;
+        this.clients = new ArrayList();
+        this.messageQueue = new LinkedBlockingQueue();
+    }
 
     public void stopServer() {
         keepRunning = false;
+    }
+
+    public LinkedBlockingQueue getMessageQueue() {
+        return messageQueue;
     }
 
     /**
@@ -48,18 +57,22 @@ public class Server {
     }
 
     private String getUserNamesAsCsv() {
-        
+
         StringBuilder output = new StringBuilder(110);
 
-        clients.stream().forEach((ClientHandler client) -> {
+        synchronized (clients) {
 
-            ConnectedUser u = client.getConnectedUser();
+            clients.stream().forEach((ClientHandler client) -> {
 
-            if (u != null) {
-                output.append(client.getConnectedUser().getUserName()).append(",");;
-            }
+                ConnectedUser u = client.getConnectedUser();
 
-        });
+                if (u != null) {
+                    output.append(client.getConnectedUser().getUserName()).append(",");;
+                }
+
+            });
+
+        }
 
         return output.toString().replaceAll(",$", "");
 
@@ -72,49 +85,51 @@ public class Server {
      */
     public void sendMessage(ChatMessage msg) {
 
-        clients.stream().forEach((ClientHandler client) -> {
+        synchronized (clients) {
 
-            ConnectedUser user = client.getConnectedUser();
+            clients.stream().forEach((ClientHandler client) -> {
 
-            // Only write to users that have logged in (not just connected)
-            if (user != null) {
+                ConnectedUser user = client.getConnectedUser();
 
-                if (msg.getMessageType() == ChatMessageType.CLIENTLIST) {
+                // Only write to users that have logged in (not just connected)
+                if (user != null) {
 
-                    client.updateClientList(msg);
+                    if (msg.getMessageType() == ChatMessageType.CLIENTLIST) {
 
-                } else {
+                        client.updateClientList(msg);
 
-                    String userName = user.getUserName();
-                    // Don't send to self
-                    if (!userName.equalsIgnoreCase(msg.getSender())) {
+                    } else {
 
-                        // Get all receivers (will be null if message is for all connected users)
-                        String[] receivers = msg.getReceivers();
-                        // Loop all recipients of the message (if sender != self)
-                        if (receivers != null) {
-                            for (String recipientName : receivers) {
+                        String userName = user.getUserName();
+                        // Don't send to self
+                        if (!userName.equalsIgnoreCase(msg.getSender())) {
 
-                                // If recipient is part of the threads user, write to the message to that thread
-                                if (recipientName.equalsIgnoreCase(userName)) {
+                            // Get all receivers (will be null if message is for all connected users)
+                            String[] receivers = msg.getReceivers();
+                            // Loop all recipients of the message (if sender != self)
+                            if (receivers != null) {
+                                for (String recipientName : receivers) {
 
-                                    client.send(msg.getContent(), msg.getSender());
+                                    // If recipient is part of the threads user, write to the message to that thread
+                                    if (recipientName.equalsIgnoreCase(userName)) {
+
+                                        client.send(msg.getContent(), msg.getSender());
+
+                                    }
 
                                 }
 
+                            } else {
+
+                                client.send(msg.getContent(), msg.getSender());
+
                             }
 
-                        } else {
-
-                            client.send(msg.getContent(), msg.getSender());
-
                         }
-
                     }
                 }
-            }
-        });
-
+            });
+        }
     }
 
     /**
@@ -124,18 +139,20 @@ public class Server {
      *
      * @param ch
      */
-    public synchronized void removeHandler(ClientHandler ch) {
+    public void removeHandler(ClientHandler ch) {
 
-        if (clients.remove(ch)) {
+        synchronized (clients) {
+            if (clients.remove(ch)) {
 
-            ch.closeConnection();
-            
-            updateClientList();
+                ch.closeConnection();
 
-            String msg1 = "Client disconnected";
-            Logger.getLogger(Log.LOG_NAME).log(Level.INFO, msg1);
-            String msg2 = "Remaining amount of clients connected: " + clients.size();
-            Logger.getLogger(Log.LOG_NAME).log(Level.INFO, msg2);
+                updateClientList();
+
+                String msg1 = "Client disconnected";
+                Logger.getLogger(Log.LOG_NAME).log(Level.INFO, msg1);
+                String msg2 = "Remaining amount of clients connected: " + clients.size();
+                Logger.getLogger(Log.LOG_NAME).log(Level.INFO, msg2);
+            }
         }
     }
 
