@@ -5,11 +5,9 @@
  */
 package chatClient;
 
-import static chatClient.client.userList;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Vector;
@@ -21,19 +19,19 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author Michael
  */
-public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
+public class chatInterface extends javax.swing.JFrame implements ObserverInterface {
 
     client client;
     List<String> clientList;
 
     /**
-     * Creates new form chatGUI
+     * Creates new form chatInterface
      */
-    public chatGUI() {
+    public chatInterface() {
         initComponents();
-        this.client = new client();
 
-        client.addObserver(this);
+        client = new client();
+
 
         try {
             client.connect("0.0.0.0", 1337);
@@ -41,15 +39,10 @@ public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
             Logger.getLogger(chatGUI.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        clientList = new ArrayList<String>();
-//        updatePanel();
+        client.addObserver(this);
+        clientList = new ArrayList();
     }
-
-    public void receiveMSG(String msg) {
-        System.out.println("received: " + msg);
-        chatWindow.append(msg + "\n");
-    }
-
+    
     //Sets the list with the users recieved from server and updates the panel
     public void setUserList(String[] userList) {
 
@@ -112,12 +105,12 @@ public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         chatWindow = new javax.swing.JTextArea();
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jScrollPane3 = new javax.swing.JScrollPane();
+        output = new javax.swing.JTextField();
+        jScrollPane2 = new javax.swing.JScrollPane();
         userTable = new javax.swing.JTable();
-        jButton3 = new javax.swing.JButton();
+        sendButton = new javax.swing.JToggleButton();
+        loginButton = new javax.swing.JButton();
+        logoutButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -126,26 +119,12 @@ public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
         chatWindow.setRows(5);
         jScrollPane1.setViewportView(chatWindow);
 
-        jButton1.setText("Send");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jButton2.setText("Logout");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
         userTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Users", "Send To"
+                "User", "Send To"
             }
         ) {
             Class[] types = new Class [] {
@@ -156,12 +135,26 @@ public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
                 return types [columnIndex];
             }
         });
-        jScrollPane3.setViewportView(userTable);
+        jScrollPane2.setViewportView(userTable);
 
-        jButton3.setText("Login");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        sendButton.setText("Send");
+        sendButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                sendButtonActionPerformed(evt);
+            }
+        });
+
+        loginButton.setText("Login");
+        loginButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loginButtonActionPerformed(evt);
+            }
+        });
+
+        logoutButton.setText("Logout");
+        logoutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logoutButtonActionPerformed(evt);
             }
         });
 
@@ -170,82 +163,65 @@ public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(27, 27, 27)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 611, Short.MAX_VALUE)
-                    .addComponent(jTextField1))
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(36, 36, 36)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
+                            .addComponent(output))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2)
-                        .addGap(25, 25, 25))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(sendButton, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(loginButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(logoutButton)))
+                .addContainerGap(34, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton2)
-                            .addComponent(jButton3))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 406, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 444, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
-                .addGap(27, 27, 27))
+                    .addComponent(output, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(sendButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(loginButton)
+                    .addComponent(logoutButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-
-        if (!jTextField1.getText().isEmpty()) {
-            String msg = "MSG:" + getReceivers() + ":" + jTextField1.getText();
+    private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
+        if (!output.getText().isEmpty()) {
+            String msg = "MSG:" + getReceivers() + ":" + output.getText();
             client.sendMessage(msg);
             chatWindow.append(timestamp() + msg + "\n");
 
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_sendButtonActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void logoutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutButtonActionPerformed
         client.sendMessage("LOGOUT:");
         client.closeConnection();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_logoutButtonActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        client.sendMessage("LOGIN:" + jTextField1.getText());
-    }//GEN-LAST:event_jButton3ActionPerformed
+    private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
+        client.sendMessage("LOGIN:" + output.getText());
+    }//GEN-LAST:event_loginButtonActionPerformed
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextArea chatWindow;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTable userTable;
-    // End of variables declaration//GEN-END:variables
-
-    public static void main(String[] args) {
-
-
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -259,24 +235,36 @@ public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(chatInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(chatInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(chatInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(chatGUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(chatInterface.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>    
+        //</editor-fold>
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new chatGUI().setVisible(true);
+                new chatInterface().setVisible(true);
             }
         });
     }
 
-    @Override
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextArea chatWindow;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JButton loginButton;
+    private javax.swing.JButton logoutButton;
+    private javax.swing.JTextField output;
+    private javax.swing.JToggleButton sendButton;
+    private javax.swing.JTable userTable;
+    // End of variables declaration//GEN-END:variables
+
+ @Override
     public void update(String msg) {
         chatWindow.append(msg);
     }
@@ -293,5 +281,4 @@ public class chatGUI extends javax.swing.JFrame implements ObserverInterface {
         SimpleDateFormat formatted = new SimpleDateFormat("HH:mm:ssa z");
         return formatted.format(calendar.getTime()) + ": ";
     }
-
 }

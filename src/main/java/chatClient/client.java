@@ -20,13 +20,11 @@ import java.util.concurrent.Executors;
  *
  * @author Michael
  */
-public class client implements Observeable {
+public class client implements ObserveableInterface{
 
-    List<ObserverInterface> observerList;
+    static List<ObserverInterface> observerList;
 
-    public client() {
-        this.observerList = new ArrayList();
-    }
+        
 
     static Socket socket;
     static private int port;
@@ -43,14 +41,13 @@ public class client implements Observeable {
 
     ExecutorService executorService = Executors.newFixedThreadPool(10);
 
-    chatGUI gui = new chatGUI();
-
     public static void connect(String address, int port) throws UnknownHostException, IOException {
         port = 80;
         serverAddress = InetAddress.getByName(address);
         socket = new Socket(serverAddress, port);
         input = new Scanner(socket.getInputStream());
         output = new PrintWriter(socket.getOutputStream(), true);  //Set to true, to get auto flush behaviour
+        observerList = new ArrayList();
     }
 
     private void addNewUser(String username) {
@@ -58,36 +55,13 @@ public class client implements Observeable {
         output.println(LoginProtocol);
     }
 
-    private void Login() throws IOException {
-
-        input = new Scanner(socket.getInputStream());
-        output = new PrintWriter(socket.getOutputStream(), true);
-
-        int count = 0;
-        while (true) {
-
-            print("Please write your username...\n");
-            String newInput = input.nextLine();
-
-            while (Arrays.asList(userList).contains(newInput)) {
-                while (count < 4) {
-                    count++;
-                    print("sorry user is already in use, please try another...");
-                    if (count > 3) {
-                        print("too many illegal tries ...");
-                        socket.close();
-                    }
-                }
-            }
-            addNewUser(input.nextLine());
-        }
-    }
+    
 
     public void print(String msg) {
 //        receiveMSG(msg);
     }
 
-    public void logout() {
+    public void closeConnection() {
         try {
             socket.close();
 
@@ -102,12 +76,10 @@ public class client implements Observeable {
 
         switch (protocolPart[0]) {
             case "CLIENTLIST":
-
-                executorService.execute(new MessageList(protocolPart[1], userList, gui));
+//                executorService.execute(new MessageList(protocolPart[1], userList));
 
             case "MSGRES":
-                messageList.add(new Message(protocolPart[1], protocolPart[2]));
-                executorService.execute(new IncMsgHandler(messageList, gui));
+                executorService.execute(new IncMsgHandler(socket));
 
         }
 
@@ -126,6 +98,10 @@ public class client implements Observeable {
         }
     }
 
+    public static void main(String[] args) {
+        
+    }
+    
 //    private static void startChat() {
 //        /* Set the Nimbus look and feel */
 //        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -158,7 +134,7 @@ public class client implements Observeable {
 //    }
     @Override
     public void addObserver(ObserverInterface o) {
-        this.observerList.add(o);
+        observerList.add(o);
     }
 
     @Override
@@ -167,12 +143,31 @@ public class client implements Observeable {
     }
 
     @Override
-    public void notifyObserver() {
-        
-        for(ObserverInterface o : observerList) {
-            o.update("");
+    public void notifyObserver(String msg) {
+
+        for (ObserverInterface o : observerList) {
+            o.update(msg);
         }
-                  
-        
+
     }
+
+    @Override
+    public void notifyObserver(String[] userList) {
+        for (ObserverInterface o : observerList) {
+            o.update(userList);
+        }
+    }
+
+    
+    public void run() {
+
+        Thread incoming = new Thread(new IncMsgHandler(socket));
+        incoming.start();
+
+    }
+    
+    public void sendMessage(String msg) {
+        output.write(msg);
+    }
+
 }

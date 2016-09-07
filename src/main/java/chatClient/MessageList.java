@@ -24,7 +24,6 @@ public class MessageList implements Runnable {
     }
 
     public void run() {
-
         userList = users.split(",");
         gui.setUserList(userList);       
     }

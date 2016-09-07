@@ -12,11 +12,12 @@ import java.util.Observer;
  *
  * @author Michael
  */
-public interface Observeable {
+public interface ObserveableInterface {
     
     public void addObserver(ObserverInterface o);
     public void removeObserver(ObserverInterface o);
-    public void notifyObserver();
+    public void notifyObserver(String msg);
+    public void notifyObserver(String[] userList);
     
     
 }

@@ -5,9 +5,14 @@
  */
 package chatClient;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -17,39 +22,53 @@ public class IncMsgHandler implements Runnable {
 
     Message msg;
     String username, message;
-    chatGUI gui;
+    Socket socket;
+    static private Scanner input;
+    client client = new client();
 
-    ConcurrentLinkedQueue<Message> messageList = new ConcurrentLinkedQueue<Message>();
-
-    public IncMsgHandler(ConcurrentLinkedQueue<Message> messageList, chatGUI gui) {
-        this.messageList = messageList;
-        this.gui = gui;
+    public IncMsgHandler(Socket socket) {
+        this.socket = socket;
     }
 
     @Override
     public void run() {
-        
-        while(messageList.peek() != null) {
-            printMessage(messageList.poll());
+
+        try {
+            input = new Scanner(socket.getInputStream());
+
+            while (socket.isConnected()) {
+
+                String protocol = input.nextLine();
+
+                String[] protocolPart = protocol.split(":");
+
+                switch (protocolPart[0]) {
+                    case "CLIENTLIST":
+                        String[] listOfUsers = protocolPart[1].split(",");
+                        client.notifyObserver(listOfUsers);
+                        continue;
+                    case "MSGRES":
+                        client.notifyObserver(timestamp() + protocolPart[1] + " : " + protocolPart[2] + "\n");
+                        continue;
+                    
+                }
+
+            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(IncMsgHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-    }
-    
-    private void printMessage(Message message) {
-        
-//        gui.writeMessage(timestamp() + message.getUsername() + " :\t" + message.getMessage());
-        
+
     }
 
-    
     /**
-     * 
-     * @return returning timestamp "##:## AM/PM CEST :" 
+     *
+     * @return returning timestamp "##:## AM/PM CEST :"
      */
     private static String timestamp() {
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat formatted = new SimpleDateFormat("HH:mm:ssa z");
         return formatted.format(calendar.getTime()) + ": ";
     }
-    
+
 }
