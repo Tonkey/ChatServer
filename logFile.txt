@@ -1,28 +1,12 @@
-Sep 08, 2016 1:35:06 AM server.Server runServer
+Sep 08, 2016 11:05:35 AM server.Server runServer
 INFO: Starting the Server
-Sep 08, 2016 1:35:06 AM server.Server runServer
+Sep 08, 2016 11:05:36 AM server.Server runServer
 INFO: Current amount of clients connected: 1
-Sep 08, 2016 1:35:08 AM server.Server runServer
+Sep 08, 2016 11:05:36 AM server.Server runServer
 INFO: Current amount of clients connected: 2
-Sep 08, 2016 1:35:11 AM server.Server runServer
-INFO: Starting the Server
-Sep 08, 2016 1:35:11 AM server.Server runServer
+Sep 08, 2016 11:05:38 AM server.Server runServer
 INFO: Current amount of clients connected: 3
-Sep 08, 2016 1:35:11 AM server.Server removeHandler
+Sep 08, 2016 11:05:39 AM server.Server removeHandler
 INFO: Client disconnected
-Sep 08, 2016 1:35:11 AM server.Server removeHandler
+Sep 08, 2016 11:05:39 AM server.Server removeHandler
 INFO: Remaining amount of clients connected: 2
-Sep 08, 2016 1:35:11 AM server.Server runServer
-SEVERE: null
-java.net.BindException: Address already in use: JVM_Bind
-	at java.net.DualStackPlainSocketImpl.bind0(Native Method)
-	at java.net.DualStackPlainSocketImpl.socketBind(DualStackPlainSocketImpl.java:106)
-	at java.net.AbstractPlainSocketImpl.bind(AbstractPlainSocketImpl.java:387)
-	at java.net.PlainSocketImpl.bind(PlainSocketImpl.java:190)
-	at java.net.ServerSocket.bind(ServerSocket.java:375)
-	at java.net.ServerSocket.bind(ServerSocket.java:329)
-	at server.Server.runServer(Server.java:192)
-	at server.Server.main(Server.java:216)
-	at serverClientTest.ServerClientTest$1.run(ServerClientTest.java:39)
-	at java.lang.Thread.run(Thread.java:745)
-

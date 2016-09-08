@@ -19,11 +19,11 @@ public class client implements ObserveableInterface, Runnable {
 
     static List<ObserverInterface> observerList;
 
-    static Socket socket;
-    static private int port;
-    static private InetAddress serverAddress;
-    static private Scanner input;
-    static private PrintWriter output;
+    private Socket socket;
+    private int port;
+    private InetAddress serverAddress;
+    private Scanner input;
+    private PrintWriter output;
 
     private static String[] aUserList;
     
@@ -40,6 +40,8 @@ public class client implements ObserveableInterface, Runnable {
 
     public void closeConnection() {
         try {
+            input.close();
+            output.close();
             keeprunning = false;
             socket.close();
         } catch (IOException ex) {
@@ -59,7 +61,7 @@ public class client implements ObserveableInterface, Runnable {
 
     @Override
     public void notifyObserver(String msg) {
-        lastMsgRecieved = msg;
+//        lastMsgRecieved = msg;
         observerList.stream().forEach((o) -> {
             o.update(msg);
         });

@@ -23,8 +23,7 @@ public class IncMsgHandler implements Runnable {
     private Scanner input;
     private client client;
     private String useInTest;
-    
-    
+
     public IncMsgHandler(Socket socket, Scanner input, client client) {
         this.socket = socket;
         this.input = input;
@@ -33,41 +32,36 @@ public class IncMsgHandler implements Runnable {
 
     @Override
     public void run() {
-        
+
         try {
             input = new Scanner(socket.getInputStream());
-            while (true) {
-//                if (input.hasNextLine()) {
-                    
+            while (client.keeprunning) {
+                if (input.hasNext()) {
                     String protocol = input.nextLine();
-                    this.client.setLastMsgRecieved(protocol);
-                    
+//                    System.out.println("INSIDE MSGHANDLER:   " + protocol);
+                    client.setLastMsgRecieved(protocol);
+
                     String[] protocolPart = protocol.split(":");
-                    
+
                     switch (protocolPart[0]) {
                         case "CLIENTLIST":
-                            
+
                             String[] listOfUsers = protocolPart[1].split(",");
                             client.notifyObserver(listOfUsers);
                             break;
                         case "MSGRES":
                             String someMSg = protocolPart[1] + " : " + protocolPart[2] + "\n";
-                            this.client.setLastMsgRecieved(someMSg);
                             client.notifyObserver(someMSg);
                             break;
                         default:
                             break;
                     }
-
-//                } else {
-//                    Thread.sleep(500);
-//                }
+                }
             }
 
         } catch (Exception ex) {
             Logger.getLogger(IncMsgHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-//        useInTest="exiting now";
     }
 
     /**
@@ -83,7 +77,5 @@ public class IncMsgHandler implements Runnable {
     public String getProtocol() {
         return useInTest;
     }
-    
-    
-    
+
 }
