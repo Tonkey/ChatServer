@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class Log {
 
-    public static String LOG_NAME = "myLog";
+    public static String LOG_NAME;
 
     public static void setLogFile(String logFile, String logName) {
         try {
@@ -27,7 +27,8 @@ public class Log {
             fileTxt.setFormatter(new java.util.logging.SimpleFormatter());
             logger.addHandler(fileTxt);
         } catch (IOException | SecurityException ex) {
-            Logger.getLogger(LOG_NAME).log(Level.SEVERE, null, ex);
+            System.out.println("Failed to create logger handler. Terminating!");
+            System.exit(100);
         }
     }
 
