@@ -49,6 +49,7 @@ public class client implements ObserveableInterface, Runnable {
         }
     }
 
+
     @Override
     public void addObserver(ObserverInterface o) {
         observerList.add(o);
