@@ -53,9 +53,8 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         //adds new list to the clientList!
 //        clientList.addAll(Arrays.asList(userList));
         for(String s : userList){
-            if(!s.equals(myUserName)){clientList.add(s);}
+            clientList.add(s);
         }
-        
         updatePanel();
     }
 
@@ -222,6 +221,7 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         if(myUserName.equals("")){   
         myUserName = output.getText();
         client.sendMessage("LOGIN:" + output.getText());
+        chatWindow.append("Welcome to the Server " + myUserName);
         } else {
             chatWindow.append("you are already logged in!\n");
         }
