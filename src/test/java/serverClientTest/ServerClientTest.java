@@ -31,7 +31,6 @@ public class ServerClientTest {
         new Thread(new Runnable() {
             @Override
             public void run() {
-
                 Server.main(null);
             }
         }).start();

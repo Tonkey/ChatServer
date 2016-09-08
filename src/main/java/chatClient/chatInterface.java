@@ -33,15 +33,7 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
 
         client = new client();
         
-        Thread run = new Thread(client);
-        try {
-            client.connect("chatserver-m.nyxapp.net", 1337);
-            run.start();
-        } catch (IOException ex) {
-            Logger.getLogger(chatInterface.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
-        client.addObserver(this);
     }
     
     //Sets the list with the users recieved from server and updates the panel
@@ -94,6 +86,20 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         userTable.setModel(model);
     }
 
+    public void connect(String host, int port){
+        
+        Thread run = new Thread(client);
+        try {
+            client.connect(host, port);
+            run.start();
+            chatWindow.append("You are now connected to: " + host + " on port: " + port + "\n");
+        } catch (IOException ex) {
+            Logger.getLogger(chatInterface.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        client.addObserver(this);
+        
+    }    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -111,6 +117,11 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         sendButton = new javax.swing.JToggleButton();
         loginButton = new javax.swing.JButton();
         logoutButton = new javax.swing.JButton();
+        hostName = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        portName = new javax.swing.JTextField();
+        connectButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -158,26 +169,49 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
             }
         });
 
+        hostName.setText("chatserver-m.nyxapp.net");
+
+        jLabel1.setText("HOST");
+
+        jLabel2.setText("PORT");
+
+        portName.setText("1337");
+
+        connectButton.setText("Connect");
+        connectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                connectButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 472, Short.MAX_VALUE)
-                            .addComponent(output))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                            .addComponent(sendButton, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(loginButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(logoutButton)))
-                .addContainerGap(34, Short.MAX_VALUE))
+                        .addComponent(logoutButton)
+                        .addGap(36, 36, 36)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(hostName)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(portName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(connectButton))
+                    .addComponent(jScrollPane1)
+                    .addComponent(output))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(sendButton, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -193,7 +227,12 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(loginButton)
-                    .addComponent(logoutButton))
+                    .addComponent(logoutButton)
+                    .addComponent(hostName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2)
+                    .addComponent(portName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(connectButton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -221,13 +260,17 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         if(myUserName.equals("")){   
         myUserName = output.getText();
         client.sendMessage("LOGIN:" + output.getText());
-        chatWindow.append("Welcome to the Server " + myUserName);
+        chatWindow.append("Welcome to the Server " + myUserName + "\n");
         } else {
             chatWindow.append("you are already logged in!\n");
         }
         
         output.setText(""); 
     }//GEN-LAST:event_loginButtonActionPerformed
+
+    private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
+        connect(hostName.getText(), Integer.parseInt(portName.getText()));
+    }//GEN-LAST:event_connectButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -266,11 +309,16 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea chatWindow;
+    private javax.swing.JButton connectButton;
+    private javax.swing.JTextField hostName;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JButton loginButton;
     private javax.swing.JButton logoutButton;
     private javax.swing.JTextField output;
+    private javax.swing.JTextField portName;
     private javax.swing.JToggleButton sendButton;
     private javax.swing.JTable userTable;
     // End of variables declaration//GEN-END:variables
