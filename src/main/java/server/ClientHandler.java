@@ -89,16 +89,6 @@ public class ClientHandler implements Runnable {
 
                     connectedUser = userObject;
 
-                    server.queueMessage(
-                            new ChatMessage(
-                                    ChatMessageType.MESSAGE,
-                                    connectedUser.getUserName() + " joined",
-                                    null,
-                                    "SERVER"
-                            ));
-
-                    send("Welcome to the server, " + connectedUser.getUserName(), "!");
-
                     server.updateClientList();
 
                 } else {
@@ -115,18 +105,6 @@ public class ClientHandler implements Runnable {
                 break;
 
             case LOGOUT:
-
-                if (connectedUser != null) {
-
-                    server.queueMessage(
-                            new ChatMessage(
-                                    ChatMessageType.MESSAGE,
-                                    connectedUser.getUserName() + " disconnected",
-                                    null,
-                                    "SERVER"
-                            ));
-
-                }
 
                 server.removeHandler(this);
                 break;
