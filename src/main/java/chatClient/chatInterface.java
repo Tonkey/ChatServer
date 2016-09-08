@@ -204,7 +204,6 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
         if (!output.getText().isEmpty()) {
             String msg = "MSG:" + getReceivers() + ":" + output.getText();
-            chatWindow.append(timestamp() + msg + "\n");
             client.sendMessage(msg);
             output.setText("");
         }
