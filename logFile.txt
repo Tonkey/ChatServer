@@ -1,12 +1,12 @@
-Sep 08, 2016 11:05:35 AM server.Server runServer
+Sep 08, 2016 11:51:36 AM server.Server runServer
 INFO: Starting the Server
-Sep 08, 2016 11:05:36 AM server.Server runServer
+Sep 08, 2016 11:51:37 AM server.Server runServer
 INFO: Current amount of clients connected: 1
-Sep 08, 2016 11:05:36 AM server.Server runServer
+Sep 08, 2016 11:51:37 AM server.Server runServer
 INFO: Current amount of clients connected: 2
-Sep 08, 2016 11:05:38 AM server.Server runServer
+Sep 08, 2016 11:51:39 AM server.Server runServer
 INFO: Current amount of clients connected: 3
-Sep 08, 2016 11:05:39 AM server.Server removeHandler
+Sep 08, 2016 11:51:40 AM server.Server removeHandler
 INFO: Client disconnected
-Sep 08, 2016 11:05:39 AM server.Server removeHandler
+Sep 08, 2016 11:51:40 AM server.Server removeHandler
 INFO: Remaining amount of clients connected: 2
