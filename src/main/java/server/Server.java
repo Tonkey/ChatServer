@@ -203,7 +203,6 @@ public class Server {
 
         } catch (IOException ex) {
             Logger.getLogger(Log.LOG_NAME).log(Level.SEVERE, null, ex);
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

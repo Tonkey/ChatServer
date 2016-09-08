@@ -31,10 +31,11 @@ public class ClientHandler implements Runnable {
 
         msgPattern = Pattern.compile("MSG:[^:]+:.{1,255}");
         msgAllPattern = Pattern.compile("MSG::+.{1,255}");
-        loginPattern = Pattern.compile("LOGIN:[^:,\\s]{1,25}");
+        loginPattern = Pattern.compile("LOGIN:[^:,]{1,25}");
         logoutPattern = Pattern.compile("LOGOUT:");
 
         try {
+            
             input = new Scanner(socket.getInputStream());
             writer = new PrintWriter(socket.getOutputStream(), true);
 
