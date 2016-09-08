@@ -51,7 +51,15 @@ public class ClientHandler implements Runnable {
 
         String message = input.nextLine(); //IMPORTANT blocking call
 
-        if (msgPattern.matcher(message).matches()) {
+        if (connectedUser == null) {
+
+            if (loginPattern.matcher(message).matches()) {
+
+                return new ChatMessage(ChatMessageType.LOGIN, message.split(":")[1], null, null);
+
+            }
+
+        } else if (msgPattern.matcher(message).matches()) {
 
             String[] parts = message.split(":");
 
@@ -62,10 +70,6 @@ public class ClientHandler implements Runnable {
             String[] parts = message.split("::");
 
             return new ChatMessage(ChatMessageType.MESSAGE, parts[1], null, connectedUser.getUserName());
-
-        } else if (loginPattern.matcher(message).matches()) {
-
-            return new ChatMessage(ChatMessageType.LOGIN, message.split(":")[1], null, null);
 
         } else if (logoutPattern.matcher(message).matches()) {
 
@@ -89,16 +93,6 @@ public class ClientHandler implements Runnable {
 
                     connectedUser = userObject;
 
-                    server.queueMessage(
-                            new ChatMessage(
-                                    ChatMessageType.MESSAGE,
-                                    connectedUser.getUserName() + " joined",
-                                    null,
-                                    "SERVER"
-                            ));
-
-                    send("Welcome to the server, " + connectedUser.getUserName(), "!");
-
                     server.updateClientList();
 
                 } else {
@@ -115,18 +109,6 @@ public class ClientHandler implements Runnable {
                 break;
 
             case LOGOUT:
-
-                if (connectedUser != null) {
-
-                    server.queueMessage(
-                            new ChatMessage(
-                                    ChatMessageType.MESSAGE,
-                                    connectedUser.getUserName() + " disconnected",
-                                    null,
-                                    "SERVER"
-                            ));
-
-                }
 
                 server.removeHandler(this);
                 break;

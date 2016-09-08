@@ -124,31 +124,28 @@ public class Server {
                     } else {
 
                         String userName = user.getUserName();
-                        // Don't send to self
-                        if (!userName.equalsIgnoreCase(msg.getSender())) {
 
-                            // Get all receivers (will be null if message is for all connected users)
-                            String[] receivers = msg.getReceivers();
-                            // Loop all recipients of the message (if sender != self)
-                            if (receivers != null) {
-                                for (String recipientName : receivers) {
+                        // Get all receivers (will be null if message is for all connected users)
+                        String[] receivers = msg.getReceivers();
+                        // Loop all recipients of the message (if sender != self)
+                        if (receivers != null) {
+                            for (String recipientName : receivers) {
 
-                                    // If recipient is part of the threads user, write to the message to that thread
-                                    if (recipientName.equalsIgnoreCase(userName)) {
+                                // If recipient is part of the threads user, write to the message to that thread
+                                if (recipientName.equalsIgnoreCase(userName)) {
 
-                                        client.send(msg.getContent(), msg.getSender());
-
-                                    }
+                                    client.send(msg.getContent(), msg.getSender());
 
                                 }
 
-                            } else {
-
-                                client.send(msg.getContent(), msg.getSender());
-
                             }
 
+                        } else {
+
+                            client.send(msg.getContent(), msg.getSender());
+
                         }
+
                     }
                 }
             });

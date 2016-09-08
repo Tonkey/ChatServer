@@ -6,7 +6,6 @@
 package serverClientTest;
 
 import chatClient.client;
-import java.awt.BorderLayout;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
