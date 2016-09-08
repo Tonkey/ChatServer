@@ -1,6 +1,2 @@
-sep. 08, 2016 10:28:40 AM server.Server runServer
+sep. 08, 2016 12:28:16 PM server.Server runServer
 INFO: Starting the Server
-sep. 08, 2016 10:28:40 AM server.Server runServer
-INFO: Current amount of clients connected: 1
-sep. 08, 2016 10:28:42 AM server.Server runServer
-INFO: Current amount of clients connected: 2
