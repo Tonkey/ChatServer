@@ -51,7 +51,7 @@ public class IncMsgHandler implements Runnable {
                             break;
                         case "MSGRES":
                             String someMSg =protocolPart[0] + protocolPart[1] + " : " + protocolPart[2] + "\n";
-                            client.notifyObserver(someMSg);
+                            client.notifyObserver(protocol);
                             break;
                         default:
                             break;
