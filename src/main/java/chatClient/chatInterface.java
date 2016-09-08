@@ -35,7 +35,7 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         
         Thread run = new Thread(client);
         try {
-            client.connect("localhost", 1337);
+            client.connect("chatserver-m.nyxapp.net", 1337);
             run.start();
         } catch (IOException ex) {
             Logger.getLogger(chatInterface.class.getName()).log(Level.SEVERE, null, ex);
