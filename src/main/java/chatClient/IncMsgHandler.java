@@ -10,7 +10,6 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,45 +19,55 @@ import java.util.logging.Logger;
  */
 public class IncMsgHandler implements Runnable {
 
-    Message msg;
-    String username, message;
-    Socket socket;
-    static private Scanner input;
-    client client = new client();
-
-    public IncMsgHandler(Socket socket) {
+    private Socket socket;
+    private Scanner input;
+    private client client;
+    private String useInTest;
+    
+    
+    public IncMsgHandler(Socket socket, Scanner input, client client) {
         this.socket = socket;
+        this.input = input;
+        this.client = client;
     }
 
     @Override
     public void run() {
-
+        
         try {
             input = new Scanner(socket.getInputStream());
-
-            while (socket.isConnected()) {
-
-                String protocol = input.nextLine();
-
-                String[] protocolPart = protocol.split(":");
-
-                switch (protocolPart[0]) {
-                    case "CLIENTLIST":
-                        String[] listOfUsers = protocolPart[1].split(",");
-                        client.notifyObserver(listOfUsers);
-                        continue;
-                    case "MSGRES":
-                        client.notifyObserver(timestamp() + protocolPart[1] + " : " + protocolPart[2] + "\n");
-                        continue;
+            while (true) {
+//                if (input.hasNextLine()) {
                     
-                }
+                    String protocol = input.nextLine();
+                    this.client.setLastMsgRecieved(protocol);
+                    
+                    String[] protocolPart = protocol.split(":");
+                    
+                    switch (protocolPart[0]) {
+                        case "CLIENTLIST":
+                            
+                            String[] listOfUsers = protocolPart[1].split(",");
+                            client.notifyObserver(listOfUsers);
+                            break;
+                        case "MSGRES":
+                            String someMSg = protocolPart[1] + " : " + protocolPart[2] + "\n";
+                            this.client.setLastMsgRecieved(someMSg);
+                            client.notifyObserver(someMSg);
+                            break;
+                        default:
+                            break;
+                    }
 
+//                } else {
+//                    Thread.sleep(500);
+//                }
             }
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(IncMsgHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+//        useInTest="exiting now";
     }
 
     /**
@@ -71,4 +80,10 @@ public class IncMsgHandler implements Runnable {
         return formatted.format(calendar.getTime()) + ": ";
     }
 
+    public String getProtocol() {
+        return useInTest;
+    }
+    
+    
+    
 }

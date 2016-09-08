@@ -8,6 +8,7 @@ package chatClient;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Vector;
@@ -21,9 +22,9 @@ import javax.swing.table.DefaultTableModel;
  */
 public class chatInterface extends javax.swing.JFrame implements ObserverInterface {
 
-    client client;
-    List<String> clientList;
-
+    private client client;
+    private List<String> clientList;
+    private String myUserName = "";
     /**
      * Creates new form chatInterface
      */
@@ -35,27 +36,26 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         Thread run = new Thread(client);
         try {
             client.connect("localhost", 1337);
-        run.start();
+            run.start();
         } catch (IOException ex) {
-            Logger.getLogger(chatGUI.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(chatInterface.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         client.addObserver(this);
-        clientList = new ArrayList();
     }
     
     //Sets the list with the users recieved from server and updates the panel
     public void setUserList(String[] userList) {
 
         //clear current ClientList to make ready for new list
-        for (String s : clientList) {
-            clientList.remove(s);
-        }
+        clientList = new ArrayList();
 
         //adds new list to the clientList!
-        for (String user : userList) {
-            clientList.add(user);
+//        clientList.addAll(Arrays.asList(userList));
+        for(String s : userList){
+            if(!s.equals(myUserName)){clientList.add(s);}
         }
+        
         updatePanel();
     }
 
@@ -75,7 +75,7 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         return recievers;
     }
 
-    private synchronized void updatePanel() {
+    private void updatePanel() {
         DefaultTableModel model = (DefaultTableModel) userTable.getModel();
         int rows = model.getRowCount();
 
@@ -205,18 +205,29 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
         if (!output.getText().isEmpty()) {
             String msg = "MSG:" + getReceivers() + ":" + output.getText();
             chatWindow.append(timestamp() + msg + "\n");
-            chatWindow.updateUI();
             client.sendMessage(msg);
+            output.setText("");
         }
     }//GEN-LAST:event_sendButtonActionPerformed
 
     private void logoutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutButtonActionPerformed
         client.sendMessage("LOGOUT:");
         client.closeConnection();
+        chatWindow.append("You are now logged out!\n");
+        userTable.setModel(new DefaultTableModel());
+        
     }//GEN-LAST:event_logoutButtonActionPerformed
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
+        
+        if(myUserName.equals("")){   
+        myUserName = output.getText();
         client.sendMessage("LOGIN:" + output.getText());
+        } else {
+            chatWindow.append("you are already logged in!\n");
+        }
+        
+        output.setText(""); 
     }//GEN-LAST:event_loginButtonActionPerformed
 
     /**
@@ -267,12 +278,13 @@ public class chatInterface extends javax.swing.JFrame implements ObserverInterfa
 
  @Override
     public void update(String msg) {
+        
         chatWindow.append(msg);
-        chatWindow.updateUI();
+        
     }
 
     @Override
-    public void update(String[] userList) {
+    public synchronized void update(String[] userList) {
 
         setUserList(userList);
 

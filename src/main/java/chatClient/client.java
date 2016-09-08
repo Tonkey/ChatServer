@@ -8,11 +8,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.concurrent.Executors;
 
 /**
  *
@@ -25,19 +22,14 @@ public class client implements ObserveableInterface, Runnable {
     static Socket socket;
     static private int port;
     static private InetAddress serverAddress;
-    static private String ip;
-
-    StringBuilder stringB = new StringBuilder();
-
     static private Scanner input;
     static private PrintWriter output;
 
-    static String[] userList;
-    static ConcurrentLinkedQueue<Message> messageList = new ConcurrentLinkedQueue<Message>();
+    private static String[] aUserList;
+    
+    private String lastMsgRecieved;
 
-    ExecutorService executorService = Executors.newFixedThreadPool(10);
-
-    public static void connect(String address, int port) throws UnknownHostException, IOException {
+    public void connect(String address, int port) throws UnknownHostException, IOException {
 
         serverAddress = InetAddress.getByName(address);
         socket = new Socket(serverAddress, port);
@@ -46,52 +38,15 @@ public class client implements ObserveableInterface, Runnable {
         observerList = new ArrayList();
     }
 
-    private void addNewUser(String username) {
-        String LoginProtocol = "LOGIN:" + username;
-        output.println(LoginProtocol);
-    }
-
-    public void print(String msg) {
-//        receiveMSG(msg);
-    }
-
     public void closeConnection() {
         try {
+            keeprunning = false;
             socket.close();
-
         } catch (IOException ex) {
             Logger.getLogger(client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void recieveProtocol(String protocol) {
-
-        String[] protocolPart = protocol.split(":");
-
-        switch (protocolPart[0]) {
-            case "CLIENTLIST":
-
-            case "MSGRES":
-                executorService.execute(new IncMsgHandler(socket));
-
-        }
-
-    }
-
-    private void sendMSG(String msg) {
-
-        try {
-
-            output = new PrintWriter(socket.getOutputStream(), true);
-
-        } catch (IOException ex) {
-            Logger.getLogger(client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public static void main(String[] args) {
-
-    }
 
     @Override
     public void addObserver(ObserverInterface o) {
@@ -100,41 +55,51 @@ public class client implements ObserveableInterface, Runnable {
 
     @Override
     public void removeObserver(ObserverInterface o) {
-        // not used in this case
+        observerList.remove(o);
     }
 
     @Override
     public void notifyObserver(String msg) {
-
-        for (ObserverInterface o : observerList) {
+        lastMsgRecieved = msg;
+        observerList.stream().forEach((o) -> {
             o.update(msg);
-        }
+        });
 
     }
 
     @Override
-    public void notifyObserver(String[] userList) {
-        for (ObserverInterface o : observerList) {
+    public synchronized void notifyObserver(String[] userList) {
+        
+        aUserList=userList;
+        observerList.stream().forEach((o) -> {
             o.update(userList);
-        }
+        });
     }
 
     boolean keeprunning = true;
-    
+    private IncMsgHandler iMH;
     @Override
     public void run() {
-        
-        do{
-            if(input.hasNextLine()){
-                Thread read = new Thread(new IncMsgHandler(socket));
-                read.start();
-            }
-        } while(keeprunning);
+        iMH = new IncMsgHandler(socket, input, this);
+        Thread t1 = new Thread(iMH);
+        t1.start();
         
     }
 
     public void sendMessage(String msg) {
         output.println(msg);
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public String getlastMsgRecieved(){
+        return lastMsgRecieved;
+    }
+
+    public void setLastMsgRecieved(String lastMsgRecieved) {
+        this.lastMsgRecieved = lastMsgRecieved;
     }
 
 }
