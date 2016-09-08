@@ -31,9 +31,8 @@ public class ServerClientTest {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String[] args = new String[2];
 
-                Server.main(args);
+                Server.main(null);
             }
         }).start();
     }
